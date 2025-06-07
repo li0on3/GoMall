@@ -142,7 +142,19 @@ func DeleteCachedCategories() error {
 	return RDB.Del(CTX, key).Err()
 }
 
-// 创建商品
+// CreateProduct 创建商品
+// @Summary 创建新商品
+// @Description 创建新的商品信息，包括名称、描述、价格、库存等
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param product body CreateProductRequest true "商品信息"
+// @Success 200 {object} ApiResponse{data=Product} "创建成功"
+// @Failure 400 {object} ApiResponse "参数验证失败"
+// @Failure 404 {object} ApiResponse "商品分类不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/products [post]
 func CreateProduct(c *gin.Context) {
 	var req CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -197,7 +209,24 @@ func CreateProduct(c *gin.Context) {
 	SuccessResponse(c, product)
 }
 
-// 获取商品列表
+// GetProducts 获取商品列表
+// @Summary 获取商品列表
+// @Description 获取商品列表，支持分页、分类筛选、关键字搜索、价格范围筛选和排序
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(10)
+// @Param category_id query int false "分类ID"
+// @Param keyword query string false "搜索关键字"
+// @Param min_price query number false "最低价格"
+// @Param max_price query number false "最高价格"
+// @Param sort_by query string false "排序字段" Enums(created_at, price, sales_count) default(created_at)
+// @Param sort_order query string false "排序方式" Enums(asc, desc) default(desc)
+// @Success 200 {object} ApiResponse{data=PaginationResponse{list=[]Product}} "查询成功"
+// @Failure 400 {object} ApiResponse "参数验证失败"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Router /api/products [get]
 func GetProducts(c *gin.Context) {
 	var req ProductQueryRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -281,7 +310,17 @@ func GetProducts(c *gin.Context) {
 	PaginationSuccessResponse(c, products, total, req.Page, req.PageSize)
 }
 
-// 获取商品详情
+// GetProduct 获取商品详情
+// @Summary 获取商品详情
+// @Description 根据商品ID获取商品的详细信息
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param id path int true "商品ID"
+// @Success 200 {object} ApiResponse{data=Product} "查询成功"
+// @Failure 400 {object} ApiResponse "无效的商品ID"
+// @Failure 404 {object} ApiResponse "商品不存在或已下架"
+// @Router /api/products/{id} [get]
 func GetProduct(c *gin.Context) {
 	idParam := c.Param("id")
 	productID, err := strconv.ParseUint(idParam, 10, 32)
@@ -315,7 +354,20 @@ func GetProduct(c *gin.Context) {
 	SuccessResponse(c, product)
 }
 
-// 更新商品
+// UpdateProduct 更新商品信息
+// @Summary 更新商品信息
+// @Description 更新商品的名称、描述、价格、库存、分类等信息
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param id path int true "商品ID"
+// @Param product body UpdateProductRequest true "更新的商品信息"
+// @Success 200 {object} ApiResponse{data=Product} "更新成功"
+// @Failure 400 {object} ApiResponse "参数验证失败"
+// @Failure 404 {object} ApiResponse "商品不存在或分类不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/products/{id} [put]
 func UpdateProduct(c *gin.Context) {
 	idParam := c.Param("id")
 	productID, err := strconv.ParseUint(idParam, 10, 32)
@@ -388,7 +440,19 @@ func UpdateProduct(c *gin.Context) {
 	SuccessResponse(c, product)
 }
 
-// 删除商品（软删除）
+// DeleteProduct 删除商品（软删除）
+// @Summary 删除商品
+// @Description 软删除商品，将商品状态设置为已删除
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param id path int true "商品ID"
+// @Success 200 {object} ApiResponse{data=object{message=string}} "删除成功"
+// @Failure 400 {object} ApiResponse "无效的商品ID"
+// @Failure 404 {object} ApiResponse "商品不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/products/{id} [delete]
 func DeleteProduct(c *gin.Context) {
 	idParam := c.Param("id")
 	productID, err := strconv.ParseUint(idParam, 10, 32)
@@ -423,7 +487,19 @@ func DeleteProduct(c *gin.Context) {
 	SuccessResponse(c, gin.H{"message": "商品删除成功"})
 }
 
-// 创建分类
+// CreateCategory 创建商品分类
+// @Summary 创建商品分类
+// @Description 创建新的商品分类，支持创建子分类
+// @Tags 商品分类
+// @Accept json
+// @Produce json
+// @Param category body CreateCategoryRequest true "分类信息"
+// @Success 200 {object} ApiResponse{data=Category} "创建成功"
+// @Failure 400 {object} ApiResponse "参数验证失败"
+// @Failure 404 {object} ApiResponse "父分类不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/categories [post]
 func CreateCategory(c *gin.Context) {
 	var req CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -460,7 +536,15 @@ func CreateCategory(c *gin.Context) {
 	SuccessResponse(c, category)
 }
 
-// 获取分类列表
+// GetCategories 获取分类列表
+// @Summary 获取分类列表
+// @Description 获取所有启用的商品分类列表
+// @Tags 商品分类
+// @Accept json
+// @Produce json
+// @Success 200 {object} ApiResponse{data=[]Category} "查询成功"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Router /api/categories [get]
 func GetCategories(c *gin.Context) {
 	// 尝试从缓存获取
 	if categories, err := GetCachedCategories(); err == nil {
@@ -481,7 +565,17 @@ func GetCategories(c *gin.Context) {
 	SuccessResponse(c, categories)
 }
 
-// 获取分类详情
+// GetCategory 获取分类详情
+// @Summary 获取分类详情
+// @Description 根据分类ID获取分类的详细信息
+// @Tags 商品分类
+// @Accept json
+// @Produce json
+// @Param id path int true "分类ID"
+// @Success 200 {object} ApiResponse{data=Category} "查询成功"
+// @Failure 400 {object} ApiResponse "无效的分类ID"
+// @Failure 404 {object} ApiResponse "分类不存在或已禁用"
+// @Router /api/categories/{id} [get]
 func GetCategory(c *gin.Context) {
 	idParam := c.Param("id")
 	categoryID, err := strconv.ParseUint(idParam, 10, 32)
@@ -504,7 +598,20 @@ func GetCategory(c *gin.Context) {
 	SuccessResponse(c, category)
 }
 
-// 更新分类
+// UpdateCategory 更新分类信息
+// @Summary 更新分类信息
+// @Description 更新分类的名称、描述、父分类、排序等信息
+// @Tags 商品分类
+// @Accept json
+// @Produce json
+// @Param id path int true "分类ID"
+// @Param category body UpdateCategoryRequest true "更新的分类信息"
+// @Success 200 {object} ApiResponse{data=Category} "更新成功"
+// @Failure 400 {object} ApiResponse "参数验证失败"
+// @Failure 404 {object} ApiResponse "分类不存在或父分类不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/categories/{id} [put]
 func UpdateCategory(c *gin.Context) {
 	idParam := c.Param("id")
 	categoryID, err := strconv.ParseUint(idParam, 10, 32)
@@ -565,7 +672,19 @@ func UpdateCategory(c *gin.Context) {
 	SuccessResponse(c, category)
 }
 
-// 删除分类（软删除）
+// DeleteCategory 删除分类（软删除）
+// @Summary 删除分类
+// @Description 软删除分类，如果分类下有商品或子分类则不能删除
+// @Tags 商品分类
+// @Accept json
+// @Produce json
+// @Param id path int true "分类ID"
+// @Success 200 {object} ApiResponse{data=object{message=string}} "删除成功"
+// @Failure 400 {object} ApiResponse "无效的分类ID或分类下有商品/子分类"
+// @Failure 404 {object} ApiResponse "分类不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/categories/{id} [delete]
 func DeleteCategory(c *gin.Context) {
 	idParam := c.Param("id")
 	categoryID, err := strconv.ParseUint(idParam, 10, 32)
@@ -609,7 +728,17 @@ func DeleteCategory(c *gin.Context) {
 	SuccessResponse(c, gin.H{"message": "分类删除成功"})
 }
 
-// 上传商品图片
+// UploadProductImages 上传商品图片
+// @Summary 上传商品图片
+// @Description 上传商品图片，支持多文件上传，最多10张
+// @Tags 商品管理
+// @Accept multipart/form-data
+// @Produce json
+// @Param images formData file true "商品图片（支持jpg、jpeg、png、gif、webp格式）"
+// @Success 200 {object} ApiResponse{data=object{uploaded_files=[]string,uploaded_count=int,total_files=int,errors=[]string}} "上传成功"
+// @Failure 400 {object} ApiResponse "文件解析失败或文件数量超限"
+// @Security Bearer
+// @Router /api/products/upload [post]
 func UploadProductImages(c *gin.Context) {
 	// 解析多文件上传
 	form, err := c.MultipartForm()
@@ -726,7 +855,16 @@ func generateRandomString(length int) string {
 	return string(result)
 }
 
-// 获取热门商品
+// GetHotProducts 获取热门商品
+// @Summary 获取热门商品
+// @Description 根据销量获取热门商品列表
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param limit query int false "返回数量限制" default(10) maximum(50)
+// @Success 200 {object} ApiResponse{data=[]Product} "查询成功"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Router /api/products/hot [get]
 func GetHotProducts(c *gin.Context) {
 	limit := 10
 	if limitParam := c.Query("limit"); limitParam != "" {
@@ -763,7 +901,19 @@ func GetHotProducts(c *gin.Context) {
 	SuccessResponse(c, products)
 }
 
-// 搜索商品
+// SearchProducts 搜索商品
+// @Summary 搜索商品
+// @Description 根据关键字搜索商品名称和描述
+// @Tags 商品管理
+// @Accept json
+// @Produce json
+// @Param keyword query string true "搜索关键字"
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(10) maximum(100)
+// @Success 200 {object} ApiResponse{data=PaginationResponse{list=[]Product}} "搜索成功"
+// @Failure 400 {object} ApiResponse "搜索关键字不能为空"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Router /api/products/search [get]
 func SearchProducts(c *gin.Context) {
 	keyword := c.Query("keyword")
 	if keyword == "" {

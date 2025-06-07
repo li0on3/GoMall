@@ -273,7 +273,19 @@ func (sm *StockManager) RestoreStock(productID uint, quantity int) error {
 
 // 购物车功能实现
 
-// 添加商品到购物车
+// AddToCart 添加商品到购物车
+// @Summary 添加商品到购物车
+// @Description 将指定商品添加到用户的购物车，如果商品已存在则更新数量
+// @Tags 购物车管理
+// @Accept json
+// @Produce json
+// @Param cart body AddCartRequest true "购物车信息"
+// @Success 200 {object} ApiResponse{data=CartItem} "添加成功"
+// @Failure 400 {object} ApiResponse "参数验证失败或库存不足"
+// @Failure 404 {object} ApiResponse "商品不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/cart [post]
 func AddToCart(c *gin.Context) {
 	var req AddCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -341,7 +353,16 @@ func AddToCart(c *gin.Context) {
 	}
 }
 
-// 获取购物车列表
+// GetCart 获取购物车列表
+// @Summary 获取购物车列表
+// @Description 获取当前用户的购物车列表，包括总金额计算
+// @Tags 购物车管理
+// @Accept json
+// @Produce json
+// @Success 200 {object} ApiResponse{data=object{items=[]CartItem,total_amount=number,total_count=int}} "查询成功"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/cart [get]
 func GetCart(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
@@ -366,7 +387,20 @@ func GetCart(c *gin.Context) {
 	SuccessResponse(c, result)
 }
 
-// 更新购物车项
+// UpdateCartItem 更新购物车项
+// @Summary 更新购物车商品数量
+// @Description 更新购物车中指定商品的数量
+// @Tags 购物车管理
+// @Accept json
+// @Produce json
+// @Param id path int true "购物车项ID"
+// @Param cart body UpdateCartRequest true "更新的数量"
+// @Success 200 {object} ApiResponse{data=CartItem} "更新成功"
+// @Failure 400 {object} ApiResponse "参数验证失败或库存不足"
+// @Failure 404 {object} ApiResponse "购物车项不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/cart/{id} [put]
 func UpdateCartItem(c *gin.Context) {
 	cartItemID := c.Param("id")
 	itemID, err := strconv.ParseUint(cartItemID, 10, 32)
@@ -413,7 +447,19 @@ func UpdateCartItem(c *gin.Context) {
 	SuccessResponse(c, cartItem)
 }
 
-// 删除购物车项
+// DeleteCartItem 删除购物车项
+// @Summary 删除购物车商品
+// @Description 从购物车中删除指定商品
+// @Tags 购物车管理
+// @Accept json
+// @Produce json
+// @Param id path int true "购物车项ID"
+// @Success 200 {object} ApiResponse{data=object{message=string}} "删除成功"
+// @Failure 400 {object} ApiResponse "无效的购物车项ID"
+// @Failure 404 {object} ApiResponse "购物车项不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/cart/{id} [delete]
 func DeleteCartItem(c *gin.Context) {
 	cartItemID := c.Param("id")
 	itemID, err := strconv.ParseUint(cartItemID, 10, 32)
@@ -439,7 +485,16 @@ func DeleteCartItem(c *gin.Context) {
 	SuccessResponse(c, gin.H{"message": "删除成功"})
 }
 
-// 清空购物车
+// ClearCart 清空购物车
+// @Summary 清空购物车
+// @Description 清空当前用户的所有购物车项
+// @Tags 购物车管理
+// @Accept json
+// @Produce json
+// @Success 200 {object} ApiResponse{data=object{message=string}} "清空成功"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/cart/clear [delete]
 func ClearCart(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
@@ -453,7 +508,18 @@ func ClearCart(c *gin.Context) {
 
 // 订单功能实现
 
-// 创建订单（使用并发处理）
+// CreateOrder 创建订单（使用并发处理）
+// @Summary 创建订单
+// @Description 根据购物车项创建订单，使用并发处理提高性能
+// @Tags 订单管理
+// @Accept json
+// @Produce json
+// @Param order body CreateOrderRequest true "订单信息"
+// @Success 200 {object} ApiResponse{data=Order} "创建成功"
+// @Failure 400 {object} ApiResponse "参数验证失败"
+// @Failure 500 {object} ApiResponse "订单创建失败或超时"
+// @Security Bearer
+// @Router /api/orders [post]
 func CreateOrder(c *gin.Context) {
 	var req CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -494,7 +560,18 @@ func CreateOrder(c *gin.Context) {
 	}
 }
 
-// 获取订单列表
+// GetOrders 获取订单列表
+// @Summary 获取订单列表
+// @Description 获取当前用户的订单列表，支持分页
+// @Tags 订单管理
+// @Accept json
+// @Produce json
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(10) maximum(100)
+// @Success 200 {object} ApiResponse{data=PaginationResponse{list=[]Order}} "查询成功"
+// @Failure 500 {object} ApiResponse "服务器内部错误"
+// @Security Bearer
+// @Router /api/orders [get]
 func GetOrders(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	
@@ -535,7 +612,18 @@ func GetOrders(c *gin.Context) {
 	PaginationSuccessResponse(c, orders, total, page, pageSize)
 }
 
-// 获取订单详情
+// GetOrder 获取订单详情
+// @Summary 获取订单详情
+// @Description 根据订单ID获取订单的详细信息
+// @Tags 订单管理
+// @Accept json
+// @Produce json
+// @Param id path int true "订单ID"
+// @Success 200 {object} ApiResponse{data=Order} "查询成功"
+// @Failure 400 {object} ApiResponse "无效的订单ID"
+// @Failure 404 {object} ApiResponse "订单不存在"
+// @Security Bearer
+// @Router /api/orders/{id} [get]
 func GetOrder(c *gin.Context) {
 	orderID := c.Param("id")
 	oID, err := strconv.ParseUint(orderID, 10, 32)
@@ -557,7 +645,19 @@ func GetOrder(c *gin.Context) {
 	SuccessResponse(c, order)
 }
 
-// 更新订单状态
+// UpdateOrderStatus 更新订单状态
+// @Summary 更新订单状态
+// @Description 更新订单的状态，支持的状态包括：pending、paid、shipped、delivered、cancelled
+// @Tags 订单管理
+// @Accept json
+// @Produce json
+// @Param id path int true "订单ID"
+// @Param status body UpdateOrderStatusRequest true "订单状态"
+// @Success 200 {object} ApiResponse{data=object{message=string}} "更新成功"
+// @Failure 400 {object} ApiResponse "参数验证失败或无效的订单状态"
+// @Failure 500 {object} ApiResponse "服务器内部错误或超时"
+// @Security Bearer
+// @Router /api/orders/{id}/status [put]
 func UpdateOrderStatus(c *gin.Context) {
 	orderID := c.Param("id")
 	oID, err := strconv.ParseUint(orderID, 10, 32)
@@ -616,7 +716,19 @@ func UpdateOrderStatus(c *gin.Context) {
 	}
 }
 
-// 取消订单
+// CancelOrder 取消订单
+// @Summary 取消订单
+// @Description 取消指定订单，只有待支付的订单可以取消，取消后会恢复库存
+// @Tags 订单管理
+// @Accept json
+// @Produce json
+// @Param id path int true "订单ID"
+// @Success 200 {object} ApiResponse{data=object{message=string}} "取消成功"
+// @Failure 400 {object} ApiResponse "无效的订单ID或订单状态不允许取消"
+// @Failure 404 {object} ApiResponse "订单不存在"
+// @Failure 500 {object} ApiResponse "服务器内部错误或超时"
+// @Security Bearer
+// @Router /api/orders/{id}/cancel [post]
 func CancelOrder(c *gin.Context) {
 	orderID := c.Param("id")
 	oID, err := strconv.ParseUint(orderID, 10, 32)
