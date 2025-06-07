@@ -78,12 +78,29 @@ func main() {
 		// 商品相关API
 		products := api.Group("/products")
 		{
-			products.GET("", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "商品列表功能待实现"})
-			})
-			products.GET("/:id", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "商品详情功能待实现"})
-			})
+			products.GET("", GetProducts)                                     // 获取商品列表
+			products.GET("/hot", GetHotProducts)                             // 获取热门商品
+			products.GET("/search", SearchProducts)                          // 搜索商品
+			products.GET("/:id", GetProduct)                                 // 获取商品详情
+			products.POST("", RequireUser(), CreateProduct)                  // 创建商品
+			products.PUT("/:id", RequireUser(), UpdateProduct)               // 更新商品
+			products.DELETE("/:id", RequireUser(), DeleteProduct)            // 删除商品
+		}
+
+		// 商品分类API
+		categories := api.Group("/categories")
+		{
+			categories.GET("", GetCategories)                                // 获取分类列表
+			categories.GET("/:id", GetCategory)                              // 获取分类详情
+			categories.POST("", RequireUser(), CreateCategory)               // 创建分类
+			categories.PUT("/:id", RequireUser(), UpdateCategory)            // 更新分类
+			categories.DELETE("/:id", RequireUser(), DeleteCategory)         // 删除分类
+		}
+
+		// 文件上传API
+		upload := api.Group("/upload")
+		{
+			upload.POST("/images", RequireUser(), UploadProductImages)       // 上传商品图片
 		}
 		
 		// 订单相关API
