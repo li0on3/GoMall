@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .welcome-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .status {
+            background: #27ae60;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+        .api-links {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .api-link {
+            background: #3498db;
+            color: white;
+            padding: 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        .api-link:hover {
+            background: #2980b9;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{.title}}</h1>
+        <p>基于Go语言的电商微服务平台</p>
+    </div>
+    
+    <div class="container">
+        <div class="welcome-card">
+            <h2>欢迎使用 GoMall</h2>
+            <p>这是一个基于 Go 语言构建的现代化电商微服务平台</p>
+            <div class="status">✅ 系统运行正常</div>
+            
+            <div class="api-links">
+                <a href="/health" class="api-link">健康检查</a>
+                <a href="/api/users/register" class="api-link">用户注册 API</a>
+                <a href="/api/products" class="api-link">商品列表 API</a>
+                <a href="/api/orders" class="api-link">订单管理 API</a>
+            </div>
+            
+            <div style="margin-top: 2rem; color: #666;">
+                <h3>技术栈</h3>
+                <p>Gin Framework • GORM • MySQL • Redis • JWT</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
