@@ -15,6 +15,11 @@ func main() {
 	// 加载配置
 	AppConfig = LoadConfig()
 	
+	// 创建数据库
+	if err := CreateDatabase(AppConfig); err != nil {
+		log.Fatalf("数据库创建失败: %v", err)
+	}
+	
 	// 初始化数据库连接
 	if err := InitDatabase(AppConfig); err != nil {
 		log.Fatalf("数据库初始化失败: %v", err)

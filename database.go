@@ -22,12 +22,12 @@ var (
 // User 用户模型
 type User struct {
 	ID           uint      `json:"id" gorm:"primaryKey"`
-	Username     string    `json:"username" gorm:"uniqueIndex;not null"`
-	Email        string    `json:"email" gorm:"uniqueIndex;not null"`
-	PasswordHash string    `json:"-" gorm:"not null"`
-	Phone        string    `json:"phone"`
-	RealName     string    `json:"real_name"`
-	Avatar       string    `json:"avatar"`
+	Username     string    `json:"username" gorm:"type:varchar(50);uniqueIndex;not null"`
+	Email        string    `json:"email" gorm:"type:varchar(100);uniqueIndex;not null"`
+	PasswordHash string    `json:"-" gorm:"type:varchar(255);not null"`
+	Phone        string    `json:"phone" gorm:"type:varchar(20)"`
+	RealName     string    `json:"real_name" gorm:"type:varchar(50)"`
+	Avatar       string    `json:"avatar" gorm:"type:varchar(255)"`
 	Status       int       `json:"status" gorm:"default:1"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -36,8 +36,8 @@ type User struct {
 // Category 商品分类模型
 type Category struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name" gorm:"not null"`
-	Description string    `json:"description"`
+	Name        string    `json:"name" gorm:"type:varchar(100);not null"`
+	Description string    `json:"description" gorm:"type:text"`
 	ParentID    uint      `json:"parent_id" gorm:"default:0"`
 	SortOrder   int       `json:"sort_order" gorm:"default:0"`
 	Status      int       `json:"status" gorm:"default:1"`
@@ -47,9 +47,9 @@ type Category struct {
 // Product 商品模型
 type Product struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name" gorm:"not null"`
-	Description string    `json:"description"`
-	Price       float64   `json:"price" gorm:"not null"`
+	Name        string    `json:"name" gorm:"type:varchar(200);not null"`
+	Description string    `json:"description" gorm:"type:text"`
+	Price       float64   `json:"price" gorm:"type:decimal(10,2);not null"`
 	Stock       int       `json:"stock" gorm:"default:0"`
 	CategoryID  uint      `json:"category_id"`
 	Category    Category  `json:"category" gorm:"foreignKey:CategoryID"`
@@ -77,10 +77,10 @@ type Order struct {
 	ID              uint        `json:"id" gorm:"primaryKey"`
 	UserID          uint        `json:"user_id" gorm:"not null"`
 	User            User        `json:"user" gorm:"foreignKey:UserID"`
-	OrderNo         string      `json:"order_no" gorm:"uniqueIndex;not null"`
-	TotalAmount     float64     `json:"total_amount" gorm:"not null"`
-	Status          string      `json:"status" gorm:"default:pending"`
-	ShippingAddress string      `json:"shipping_address"`
+	OrderNo         string      `json:"order_no" gorm:"type:varchar(50);uniqueIndex;not null"`
+	TotalAmount     float64     `json:"total_amount" gorm:"type:decimal(10,2);not null"`
+	Status          string      `json:"status" gorm:"type:varchar(20);default:pending"`
+	ShippingAddress string      `json:"shipping_address" gorm:"type:text"`
 	OrderItems      []OrderItem `json:"order_items" gorm:"foreignKey:OrderID"`
 	CreatedAt       time.Time   `json:"created_at"`
 	UpdatedAt       time.Time   `json:"updated_at"`
@@ -93,8 +93,21 @@ type OrderItem struct {
 	ProductID uint    `json:"product_id" gorm:"not null"`
 	Product   Product `json:"product" gorm:"foreignKey:ProductID"`
 	Quantity  int     `json:"quantity" gorm:"not null"`
-	Price     float64 `json:"price" gorm:"not null"`
+	Price     float64 `json:"price" gorm:"type:decimal(10,2);not null"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// UploadedFile 文件上传记录模型
+type UploadedFile struct {
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	OriginalName string    `json:"original_name" gorm:"type:varchar(255);not null"`  // 原始文件名
+	FileName     string    `json:"file_name" gorm:"type:varchar(255);not null"`      // 保存的文件名
+	FilePath     string    `json:"file_path" gorm:"type:varchar(500);not null"`      // 文件路径
+	FileSize     int64     `json:"file_size" gorm:"not null"`                        // 文件大小
+	MimeType     string    `json:"mime_type" gorm:"type:varchar(100)"`               // 文件类型
+	UploadedBy   uint      `json:"uploaded_by"`                                      // 上传用户ID
+	User         User      `json:"user" gorm:"foreignKey:UploadedBy"`                // 关联用户
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 // InitDatabase 初始化数据库连接
@@ -144,8 +157,8 @@ func InitRedis(config *Config) error {
 	
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Password: "", // 没有密码
-		DB:       0,  // 使用默认数据库
+		Password: config.RedisPassword, // 从配置获取密码
+		DB:       0,                    // 使用默认数据库
 	})
 
 	// 测试连接
@@ -167,6 +180,7 @@ func AutoMigrate() error {
 		&CartItem{},
 		&Order{},
 		&OrderItem{},
+		&UploadedFile{},
 	)
 }
 
