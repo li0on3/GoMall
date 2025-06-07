@@ -30,6 +30,9 @@ func main() {
 		log.Fatalf("Redis初始化失败: %v", err)
 	}
 	
+	// 初始化订单服务
+	InitOrderService()
+	
 	// 确保程序退出时关闭数据库连接
 	defer CloseDatabase()
 	
@@ -103,15 +106,24 @@ func main() {
 			upload.POST("/images", RequireUser(), UploadProductImages)       // 上传商品图片
 		}
 		
+		// 购物车相关API
+		cart := api.Group("/cart")
+		{
+			cart.GET("", RequireUser(), GetCart)                               // 获取购物车
+			cart.POST("/add", RequireUser(), AddToCart)                        // 添加到购物车
+			cart.PUT("/:id", RequireUser(), UpdateCartItem)                    // 更新购物车项
+			cart.DELETE("/:id", RequireUser(), DeleteCartItem)                 // 删除购物车项
+			cart.DELETE("/clear", RequireUser(), ClearCart)                    // 清空购物车
+		}
+		
 		// 订单相关API
 		orders := api.Group("/orders")
 		{
-			orders.GET("", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "订单列表功能待实现"})
-			})
-			orders.POST("", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "创建订单功能待实现"})
-			})
+			orders.GET("", RequireUser(), GetOrders)                           // 获取订单列表
+			orders.GET("/:id", RequireUser(), GetOrder)                        // 获取订单详情
+			orders.POST("", RequireUser(), CreateOrder)                        // 创建订单
+			orders.PUT("/:id/status", RequireUser(), UpdateOrderStatus)        // 更新订单状态
+			orders.DELETE("/:id", RequireUser(), CancelOrder)                  // 取消订单
 		}
 	}
 	
