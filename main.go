@@ -67,12 +67,12 @@ func main() {
 		// 用户相关API
 		users := api.Group("/users")
 		{
-			users.POST("/register", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "用户注册功能待实现"})
-			})
-			users.POST("/login", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "用户登录功能待实现"})
-			})
+			users.POST("/register", UserRegister)                           // 用户注册
+			users.POST("/login", UserLogin)                                 // 用户登录
+			users.POST("/logout", RequireUser(), UserLogout)                // 用户登出
+			users.GET("/profile", RequireUser(), GetUserProfile)            // 获取用户信息
+			users.PUT("/profile", RequireUser(), UpdateUserProfile)         // 更新用户信息
+			users.PUT("/password", RequireUser(), ChangePassword)           // 修改密码
 		}
 		
 		// 商品相关API
